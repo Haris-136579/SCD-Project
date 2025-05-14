@@ -23,8 +23,7 @@ jobs:
 
       # Step 3: Log in to Docker Hub using the secrets stored in GitHub
       - name: Log in to Docker Hub
-        run : /
-          docker/login -u "${{ secrets.USERNAME }}" -p "${{ secrets.TOKEN }}"
+        run: docker login -u "${{ secrets.USERNAME }}" -p "${{ secrets.TOKEN }}"
 
       # Step 4: Build and push backend Docker image
       - name: Build and push backend image

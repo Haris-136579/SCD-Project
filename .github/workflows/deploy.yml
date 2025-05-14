@@ -23,10 +23,8 @@ jobs:
 
       # Step 3: Log in to Docker Hub using the secrets stored in GitHub
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.USERNAME }}  # Docker Hub username in secrets
-          password: ${{ secrets.TOKEN }}  # Docker Hub token in secrets
+        run : /
+          docker/login -u "${{ secrets.USERNAME }}" -p "${{ secrets.TOKEN }}"
 
       # Step 4: Build and push backend Docker image
       - name: Build and push backend image
@@ -34,7 +32,7 @@ jobs:
         with:
           context: ./backend  # Path to your backend Dockerfile
           push: true
-          tags: sodapopin/scd-project-backend:latest  # Docker Hub image name and tag
+          tags: hariskhan062/scd-project-backend:latest  # Docker Hub image name and tag
 
       # Step 5: Build and push frontend Docker image
       - name: Build and push frontend image
@@ -42,7 +40,7 @@ jobs:
         with:
           context: ./frontend  # Path to your frontend Dockerfile
           push: true
-          tags: sodapopin/scd-project-frontend:latest  # Docker Hub image name and tag
+          tags: hariskhan062/scd-project-frontend:latest  # Docker Hub image name and tag
 
       # Step 6: Set up kubectl for Minikube
       - name: Set up kubectl

@@ -2,45 +2,72 @@ name: Build and Deploy to Minikube
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted
+    runs-on: self-hosted  # Change this to 'ubuntu-latest' if you're not using self-hosted runners
 
     steps:
+      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Set up Docker Buildx (for advanced Docker builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      # Step 3: Log in to Docker Hub using the secrets stored in GitHub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          username: ${{ secrets.USERNAME }}  # Docker Hub username in secrets
+          password: ${{ secrets.TOKEN }}  # Docker Hub token in secrets
 
+      # Step 4: Build and push backend Docker image
       - name: Build and push backend image
         uses: docker/build-push-action@v4
         with:
-          context: ./app/backend
+          context: ./backend  # Path to your backend Dockerfile
           push: true
-          tags: hariskhan062/mernnotesapp-backend:latest
+          tags: sodapopin/scd-project-backend:latest  # Docker Hub image name and tag
 
+      # Step 5: Build and push frontend Docker image
       - name: Build and push frontend image
         uses: docker/build-push-action@v4
         with:
-          context: ./app/frontend
+          context: ./frontend  # Path to your frontend Dockerfile
           push: true
-          tags: hariskhan062/mernnotesapp-frontend:latest
+          tags: sodapopin/scd-project-frontend:latest  # Docker Hub image name and tag
 
-      - name: Deploy to Minikube
-        shell: cmd
+      # Step 6: Set up kubectl for Minikube
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}  # Kubeconfig in GitHub secrets for Minikube access
+
+      # Step 7: Create the namespace in Minikube (Dry-run and apply)
+      - name: Create Namespace in Minikube
         run: |
-          kubectl create namespace scd-project --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f kubernetes/ -n scd-project
+          kubectl create namespace scd-project --dry-run=client -o yaml |
+          kubectl apply -f -
+
+      # Step 8: Apply the Kubernetes manifests (services.yaml, deployments.yaml) to Minikube
+      - name: Apply Kubernetes Manifests
+        run: |
+          kubectl apply -f kubernetes/deployments.yaml
+          kubectl apply -f kubernetes/services.yaml
+
+      # Step 9: Wait for backend rollout to complete
+      - name: Wait for backend rollout to complete
+        run: |
           kubectl rollout status deployment/backend -n scd-project
+
+      # Step 10: Wait for frontend rollout to complete
+      - name: Wait for frontend rollout to complete
+        run: |
           kubectl rollout status deployment/frontend -n scd-project

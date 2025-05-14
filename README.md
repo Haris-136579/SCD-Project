@@ -38,10 +38,4 @@ project/
 
 ## ✅ STEP 3: Initialize Git Repository
 
-In your terminal:
 
-```bash
-cd path/to/project  # navigate to your main project folder
-git init
-git add .
-git commit -m "Initial commit with Dockerized MERN app"
